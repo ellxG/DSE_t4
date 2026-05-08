@@ -11,10 +11,10 @@ public class Marshaller {
 		charset = StandardCharsets.UTF_16;
 	}
 	
-	// This was an annoying bug :(
+	// This was an annoying bug :( Plain string encoding introduced unwanted padding
 	private byte[] stringToByte(String s) {
         ByteBuffer buf = charset.encode(s);
-        byte[] bytes = new byte[buf.remaining()];
+        byte[] bytes = new byte[buf.remaining()]; 
         buf.get(bytes);
         return bytes;
     }

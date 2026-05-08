@@ -3,50 +3,57 @@ package task4;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ServerRequestHandler implements Runnable{
 	Invoker invoker;
 	ServerSocket server;
 	int port;
-	Boolean keepSocket;
+	Boolean shutdown;
 	public ServerRequestHandler(int port) {
 		invoker = new Invoker();
 		this.port = port;
-		keepSocket = true;
 	};
 
 	@Override
 	public void run() {
-		try {
-			server = new ServerSocket(port);
-			System.out.println("Server running on port " + port);
-			Socket socket = server.accept();
-			InputStream sin = socket.getInputStream();
-			DataInputStream din = new DataInputStream(sin);
-			OutputStream sout = socket.getOutputStream();
-			DataOutputStream dout = new DataOutputStream(sout);
-			while(keepSocket) {
-				
-				
-				int length = din.readInt();
-	            byte[] request = new byte[length];
-	            din.readFully(request);
-	      
-				byte[] response = invoker.handleRequest(request);
-				
-				
-				dout.writeInt(response.length);
-	            dout.write(response);
-	            dout.flush();
-			}
-			server.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		shutdown = false;
+	    try (ServerSocket server = new ServerSocket(port)) {
+	        System.out.println("Server running on port " + port);
+	        server.setSoTimeout(1000);
+	        
+	        while (!shutdown) {
+	            try (Socket socket = server.accept()){
+	                DataInputStream din = new DataInputStream(socket.getInputStream());
+	                DataOutputStream dout = new DataOutputStream(socket.getOutputStream());
+
+                    int length = din.readInt();  // == reading 4 bytes
+                    byte[] request = new byte[length];
+                    din.readFully(request);
+
+                    byte[] response = invoker.handleRequest(request);
+
+                    dout.writeInt(response.length); // == writing 4 bytes
+                    dout.write(response);
+                    dout.flush(); 
+                    
+	            } catch (SocketTimeoutException e) {
+	            	if (shutdown) {
+	            		System.out.println("Server shutdown.");
+	            		return;
+	            	}
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	            } 
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	} 
+	
+	public void shutdownServer() {
+		shutdown = true;
 	}
 }

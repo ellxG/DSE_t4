@@ -9,7 +9,7 @@ public class Requestor {
 	ClientRequestHandler handler;
 	public Requestor() {
 		marshaller = new Marshaller();
-		handler = new ClientRequestHandler();
+		handler = new ClientRequestHandler(8001);
 	}
 	
 	public Message request(Message m) throws RemoteException, UnsupportedOperationException{

@@ -8,22 +8,10 @@ public class ClientProxy implements Greetings{
 		r = new Requestor();
 	}
 	
-	public String hello(String name){
-		Message response = null;
+	private String remoteRequest(String methodName, String messageBody) {
+		Message response;
 		try {
-			response = r.request(new Message("hello", name));
-		} catch (RemoteException e) {
-			e.printStackTrace();
-			return "Error: Remote Connection failed.";
-		} catch (UnsupportedOperationException e) {
-			return "Error: "  + e.getMessage();
-		}
-		return response.Body();
-	}
-	public String goodbye(String name){
-		Message response = null;
-		try {
-			response = r.request(new Message("goodbye", name));
+			response = r.request(new Message(methodName, messageBody));
 		} catch (RemoteException e) {
 			e.printStackTrace();
 			return "Error: Remote Connection failed.";
@@ -33,16 +21,15 @@ public class ClientProxy implements Greetings{
 		return response.Body();
 	}
 	
+	public String hello(String name){
+		return remoteRequest("hello", name);
+	}
+	
+	public String goodbye(String name){
+		return remoteRequest("goodbye", name);
+	}
+	
 	public String insult(String name) {
-		Message response = null;
-		try {
-			response = r.request(new Message("insult", name));
-		} catch (RemoteException e) {
-			e.printStackTrace();
-			return "Error: Remote Connection failed.";
-		} catch (UnsupportedOperationException e) {
-			return "Error: "  + e.getMessage();
-		}
-		return response.Body();
+		return remoteRequest("insult", name);
 	}
 }

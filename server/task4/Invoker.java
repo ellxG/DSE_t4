@@ -23,7 +23,4 @@ public class Invoker {
 		}
 		return marshaller.marshall(response);
 	}
-	
-	
 }
-;
